@@ -1,5 +1,14 @@
 @echo off
 setlocal
+if "%~1"=="" (
+  echo This is an internal launcher. Choose one of these files:
+  echo   start_uah_hud.cmd     - Open the HUD
+  echo   demo_uah_progress.cmd - Show a demo task
+  echo   test_uah_progress.cmd - Run background checks
+  echo.
+  pause
+  exit /b 0
+)
 cd /d "%~dp0"
 set "PYTHONUTF8=1"
 set "UAH_BOOT_PY="

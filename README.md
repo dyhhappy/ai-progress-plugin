@@ -55,3 +55,12 @@ UAH（Universal Agent HUD）：为 AI / Agent 任务提供桌面状态条、真�
 ## 许可
 
 参见 [LICENSE](LICENSE)。
+
+## Windows 双击使用说明
+
+- `start_uah_hud.cmd`：启动窗口。展开窗口右上角 × 关闭 HUD，不再缩回小条。
+- `demo_uah_progress.cmd`：先启动 HUD 再双击；默认演示约 30 秒，结束后保留结果窗口。若看不到进度，右键 HUD → 当前 Agent → 选择 UAH 功能演示。
+- `test_uah_progress.cmd`：后台自动验收，不改变已经打开的 HUD；无参数运行结束后按任意键关闭结果窗口。
+- `run_uah.cmd`：其他脚本共用的内部启动器；直接双击只显示使用提示。
+
+演示是预设测试事件，不代表插件已读取真实 AI 的思考状态。关闭 HUD 不会停止独立运行的 Agent 或共享状态 Hub。

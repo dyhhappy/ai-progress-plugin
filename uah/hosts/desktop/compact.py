@@ -156,6 +156,7 @@ class HudApp(DashboardApp):
                 pass
         self._root = root
         root.title(self.title)
+        root.protocol("WM_DELETE_WINDOW", self.close)
         root.attributes("-topmost", self._topmost)
         try:
             root.overrideredirect(True)
@@ -475,7 +476,7 @@ class HudApp(DashboardApp):
         elapsed = tk.Label(head, text="", bg=T.BG, fg=T.TEXT_MUTED, font=T.FONT_MONO)
         elapsed.pack(side="right")
         self._elapsed_labels["expanded"] = elapsed
-        self._icon_button(head, T.ICONS["close"], lambda: self._apply_form("mini"),
+        self._icon_button(head, T.ICONS["close"], self.close,
                           key="close").pack(side="right")
         state = tk.Label(head, text="等待 Agent", bg=T.BG, fg=T.TEXT, font=T.FONT_BODY,
                          anchor="w")

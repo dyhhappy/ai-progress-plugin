@@ -1,0 +1,734 @@
+{
+  "note": "由 build_stamps.py 从 OC 原始设定图裁切生成；未做任何重绘/改色",
+  "source": "oc_sheet.jpg",
+  "source_size": [
+    1312,
+    1199
+  ],
+  "poses": {
+    "idle": [
+      44,
+      799,
+      198,
+      1059
+    ],
+    "walk": [
+      237,
+      802,
+      391,
+      1060
+    ],
+    "work": [
+      425,
+      825,
+      625,
+      1056
+    ],
+    "think": [
+      658,
+      809,
+      808,
+      1057
+    ],
+    "relax": [
+      833,
+      830,
+      1002,
+      1044
+    ]
+  },
+  "state_to_pose": {
+    "idle": "idle",
+    "working": "work",
+    "thinking": "think",
+    "waiting": "think",
+    "warning": "idle",
+    "completed": "walk",
+    "paused": "relax",
+    "starting": "walk"
+  },
+  "bust_box": [
+    0.26,
+    0.74,
+    0.0,
+    0.56
+  ],
+  "kinds": {
+    "bust": "品牌印章（半身像，小尺寸可辨识）",
+    "full": "全身姿态（较大展示场景）"
+  },
+  "files": [
+    {
+      "file": "oc_bust_48.png",
+      "state": "idle",
+      "pose": "idle",
+      "size": 48,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_72.png",
+      "state": "idle",
+      "pose": "idle",
+      "size": 72,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_96.png",
+      "state": "idle",
+      "pose": "idle",
+      "size": 96,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust.png",
+      "state": "idle",
+      "pose": "idle",
+      "size": 128,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_176.png",
+      "state": "idle",
+      "pose": "idle",
+      "size": 176,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_256.png",
+      "state": "idle",
+      "pose": "idle",
+      "size": 256,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_stamp_48.png",
+      "state": "idle",
+      "pose": "idle",
+      "size": 48,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_72.png",
+      "state": "idle",
+      "pose": "idle",
+      "size": 72,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_96.png",
+      "state": "idle",
+      "pose": "idle",
+      "size": 96,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp.png",
+      "state": "idle",
+      "pose": "idle",
+      "size": 128,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_176.png",
+      "state": "idle",
+      "pose": "idle",
+      "size": 176,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_256.png",
+      "state": "idle",
+      "pose": "idle",
+      "size": 256,
+      "kind": "full"
+    },
+    {
+      "file": "oc_bust_working_48.png",
+      "state": "working",
+      "pose": "work",
+      "size": 48,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_working_72.png",
+      "state": "working",
+      "pose": "work",
+      "size": 72,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_working_96.png",
+      "state": "working",
+      "pose": "work",
+      "size": 96,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_working.png",
+      "state": "working",
+      "pose": "work",
+      "size": 128,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_working_176.png",
+      "state": "working",
+      "pose": "work",
+      "size": 176,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_working_256.png",
+      "state": "working",
+      "pose": "work",
+      "size": 256,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_stamp_working_48.png",
+      "state": "working",
+      "pose": "work",
+      "size": 48,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_working_72.png",
+      "state": "working",
+      "pose": "work",
+      "size": 72,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_working_96.png",
+      "state": "working",
+      "pose": "work",
+      "size": 96,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_working.png",
+      "state": "working",
+      "pose": "work",
+      "size": 128,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_working_176.png",
+      "state": "working",
+      "pose": "work",
+      "size": 176,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_working_256.png",
+      "state": "working",
+      "pose": "work",
+      "size": 256,
+      "kind": "full"
+    },
+    {
+      "file": "oc_bust_thinking_48.png",
+      "state": "thinking",
+      "pose": "think",
+      "size": 48,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_thinking_72.png",
+      "state": "thinking",
+      "pose": "think",
+      "size": 72,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_thinking_96.png",
+      "state": "thinking",
+      "pose": "think",
+      "size": 96,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_thinking.png",
+      "state": "thinking",
+      "pose": "think",
+      "size": 128,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_thinking_176.png",
+      "state": "thinking",
+      "pose": "think",
+      "size": 176,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_thinking_256.png",
+      "state": "thinking",
+      "pose": "think",
+      "size": 256,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_stamp_thinking_48.png",
+      "state": "thinking",
+      "pose": "think",
+      "size": 48,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_thinking_72.png",
+      "state": "thinking",
+      "pose": "think",
+      "size": 72,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_thinking_96.png",
+      "state": "thinking",
+      "pose": "think",
+      "size": 96,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_thinking.png",
+      "state": "thinking",
+      "pose": "think",
+      "size": 128,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_thinking_176.png",
+      "state": "thinking",
+      "pose": "think",
+      "size": 176,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_thinking_256.png",
+      "state": "thinking",
+      "pose": "think",
+      "size": 256,
+      "kind": "full"
+    },
+    {
+      "file": "oc_bust_waiting_48.png",
+      "state": "waiting",
+      "pose": "think",
+      "size": 48,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_waiting_72.png",
+      "state": "waiting",
+      "pose": "think",
+      "size": 72,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_waiting_96.png",
+      "state": "waiting",
+      "pose": "think",
+      "size": 96,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_waiting.png",
+      "state": "waiting",
+      "pose": "think",
+      "size": 128,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_waiting_176.png",
+      "state": "waiting",
+      "pose": "think",
+      "size": 176,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_waiting_256.png",
+      "state": "waiting",
+      "pose": "think",
+      "size": 256,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_stamp_waiting_48.png",
+      "state": "waiting",
+      "pose": "think",
+      "size": 48,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_waiting_72.png",
+      "state": "waiting",
+      "pose": "think",
+      "size": 72,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_waiting_96.png",
+      "state": "waiting",
+      "pose": "think",
+      "size": 96,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_waiting.png",
+      "state": "waiting",
+      "pose": "think",
+      "size": 128,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_waiting_176.png",
+      "state": "waiting",
+      "pose": "think",
+      "size": 176,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_waiting_256.png",
+      "state": "waiting",
+      "pose": "think",
+      "size": 256,
+      "kind": "full"
+    },
+    {
+      "file": "oc_bust_warning_48.png",
+      "state": "warning",
+      "pose": "idle",
+      "size": 48,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_warning_72.png",
+      "state": "warning",
+      "pose": "idle",
+      "size": 72,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_warning_96.png",
+      "state": "warning",
+      "pose": "idle",
+      "size": 96,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_warning.png",
+      "state": "warning",
+      "pose": "idle",
+      "size": 128,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_warning_176.png",
+      "state": "warning",
+      "pose": "idle",
+      "size": 176,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_warning_256.png",
+      "state": "warning",
+      "pose": "idle",
+      "size": 256,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_stamp_warning_48.png",
+      "state": "warning",
+      "pose": "idle",
+      "size": 48,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_warning_72.png",
+      "state": "warning",
+      "pose": "idle",
+      "size": 72,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_warning_96.png",
+      "state": "warning",
+      "pose": "idle",
+      "size": 96,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_warning.png",
+      "state": "warning",
+      "pose": "idle",
+      "size": 128,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_warning_176.png",
+      "state": "warning",
+      "pose": "idle",
+      "size": 176,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_warning_256.png",
+      "state": "warning",
+      "pose": "idle",
+      "size": 256,
+      "kind": "full"
+    },
+    {
+      "file": "oc_bust_completed_48.png",
+      "state": "completed",
+      "pose": "walk",
+      "size": 48,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_completed_72.png",
+      "state": "completed",
+      "pose": "walk",
+      "size": 72,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_completed_96.png",
+      "state": "completed",
+      "pose": "walk",
+      "size": 96,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_completed.png",
+      "state": "completed",
+      "pose": "walk",
+      "size": 128,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_completed_176.png",
+      "state": "completed",
+      "pose": "walk",
+      "size": 176,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_completed_256.png",
+      "state": "completed",
+      "pose": "walk",
+      "size": 256,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_stamp_completed_48.png",
+      "state": "completed",
+      "pose": "walk",
+      "size": 48,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_completed_72.png",
+      "state": "completed",
+      "pose": "walk",
+      "size": 72,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_completed_96.png",
+      "state": "completed",
+      "pose": "walk",
+      "size": 96,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_completed.png",
+      "state": "completed",
+      "pose": "walk",
+      "size": 128,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_completed_176.png",
+      "state": "completed",
+      "pose": "walk",
+      "size": 176,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_completed_256.png",
+      "state": "completed",
+      "pose": "walk",
+      "size": 256,
+      "kind": "full"
+    },
+    {
+      "file": "oc_bust_paused_48.png",
+      "state": "paused",
+      "pose": "relax",
+      "size": 48,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_paused_72.png",
+      "state": "paused",
+      "pose": "relax",
+      "size": 72,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_paused_96.png",
+      "state": "paused",
+      "pose": "relax",
+      "size": 96,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_paused.png",
+      "state": "paused",
+      "pose": "relax",
+      "size": 128,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_paused_176.png",
+      "state": "paused",
+      "pose": "relax",
+      "size": 176,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_paused_256.png",
+      "state": "paused",
+      "pose": "relax",
+      "size": 256,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_stamp_paused_48.png",
+      "state": "paused",
+      "pose": "relax",
+      "size": 48,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_paused_72.png",
+      "state": "paused",
+      "pose": "relax",
+      "size": 72,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_paused_96.png",
+      "state": "paused",
+      "pose": "relax",
+      "size": 96,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_paused.png",
+      "state": "paused",
+      "pose": "relax",
+      "size": 128,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_paused_176.png",
+      "state": "paused",
+      "pose": "relax",
+      "size": 176,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_paused_256.png",
+      "state": "paused",
+      "pose": "relax",
+      "size": 256,
+      "kind": "full"
+    },
+    {
+      "file": "oc_bust_starting_48.png",
+      "state": "starting",
+      "pose": "walk",
+      "size": 48,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_starting_72.png",
+      "state": "starting",
+      "pose": "walk",
+      "size": 72,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_starting_96.png",
+      "state": "starting",
+      "pose": "walk",
+      "size": 96,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_starting.png",
+      "state": "starting",
+      "pose": "walk",
+      "size": 128,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_starting_176.png",
+      "state": "starting",
+      "pose": "walk",
+      "size": 176,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_bust_starting_256.png",
+      "state": "starting",
+      "pose": "walk",
+      "size": 256,
+      "kind": "bust"
+    },
+    {
+      "file": "oc_stamp_starting_48.png",
+      "state": "starting",
+      "pose": "walk",
+      "size": 48,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_starting_72.png",
+      "state": "starting",
+      "pose": "walk",
+      "size": 72,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_starting_96.png",
+      "state": "starting",
+      "pose": "walk",
+      "size": 96,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_starting.png",
+      "state": "starting",
+      "pose": "walk",
+      "size": 128,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_starting_176.png",
+      "state": "starting",
+      "pose": "walk",
+      "size": 176,
+      "kind": "full"
+    },
+    {
+      "file": "oc_stamp_starting_256.png",
+      "state": "starting",
+      "pose": "walk",
+      "size": 256,
+      "kind": "full"
+    }
+  ]
+}

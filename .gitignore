@@ -104,3 +104,6 @@ desktop.ini
 
 # Generated acceptance output
 artifacts/
+
+# User-selected commands and local working directories
+config/agents.local.json

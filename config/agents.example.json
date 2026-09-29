@@ -1,0 +1,16 @@
+{
+  "my-agent": {
+    "name": "我的命令行 Agent",
+    "command": ["C:/path/to/agent.exe"],
+    "cwd": "E:/my-project",
+    "mode": "terminal",
+    "share_output": false
+  },
+  "my-script": {
+    "name": "我的 Python Agent",
+    "command": ["C:/path/to/python.exe", "-u", "C:/path/to/agent.py"],
+    "cwd": "E:/my-project",
+    "mode": "capture",
+    "share_output": false
+  }
+}

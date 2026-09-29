@@ -39,7 +39,7 @@ UAH（Universal Agent HUD）：为 AI / Agent 任务提供桌面状态条、真�
 .\test_uah_progress.cmd
 ```
 
-预期 `PASS: 8/8 suites`。日志位于 `artifacts/uah-progress/`。
+预期 `PASS: 9/9 suites`。日志位于 `artifacts/uah-progress/`。
 本次验证包含隐藏 Tk 控件的四档缩放测试；真实 UE 操作、物理急停、多屏拖动和插拔仍需实机验收。历史文档提到的独立安全/审批模块未包含在当前基线中，不能视为已接入。
 
 ## 文档与目录
@@ -55,3 +55,20 @@ UAH（Universal Agent HUD）：为 AI / Agent 任务提供桌面状态条、真�
 ## 许可
 
 参见 [LICENSE](LICENSE)。
+
+## Windows 双击使用说明
+
+- `start_uah_hud.cmd`：启动窗口。展开窗口右上角 × 关闭 HUD，不再缩回小条。
+- `demo_uah_progress.cmd`：先启动 HUD 再双击；默认演示约 30 秒，结束后保留结果窗口。若看不到进度，右键 HUD → 当前 Agent → 选择 UAH 功能演示。
+- `test_uah_progress.cmd`：后台自动验收，不改变已经打开的 HUD；无参数运行结束后按任意键关闭结果窗口。
+- `run_uah.cmd`：其他脚本共用的内部启动器；直接双击只显示使用提示。
+
+演示是预设测试事件，不代表插件已读取真实 AI 的思考状态。关闭 HUD 不会停止独立运行的 Agent 或共享状态 Hub。
+
+## 通用命令行 Agent 启动器
+
+双击 `launch_agent.cmd` 选择已经安装的 AI 命令行工具；也可以从 HUD 右键菜单进入。终端模式保留原来的交互，输出模式可读取明确的结构化事件。无需 UHA、UE 或向 UAH 填模型密钥。
+
+支持真实进程启动/退出、输出活动、仅针对本次进程的停止，以及可选上报步骤；不支持通用暂停，不猜测思考百分比。正常退出不自动等同于任务成功。
+
+[完整配置与测试方法](docs/CLI_AGENT_LAUNCHER.md)。

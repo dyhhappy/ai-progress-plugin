@@ -17,7 +17,8 @@ def progress_view(snap, connected=True):
         return ProgressView()
     task = snap.task
     ratio = task.progress_ratio
-    detail = f"已验证 {task.completed_steps}/{task.total_steps}" if ratio is not None else (
+    basis = "已上报" if snap.runtime.get("progress_basis") == "reported" else "已验证"
+    detail = f"{basis} {task.completed_steps}/{task.total_steps}" if ratio is not None else (
         f"当前步骤 {task.progress_text}" if task.progress_text else "总量未知")
     if not connected or snap.stale or snap.stopped:
         return ProgressView("determinate" if ratio is not None else "hidden", ratio,
@@ -32,7 +33,7 @@ def progress_view(snap, connected=True):
     # Even a malformed producer must not display 100% while still executing.
     if ratio is not None and ratio >= 1 and status is not Status.DONE:
         ratio = None
-        detail = "步骤已验证，等待任务结果" if tone == "active" else detail
+        detail = f"步骤{basis}，等待任务结果" if tone == "active" else detail
     prefix = {Status.DONE: "已完成", Status.ERROR: "失败", Status.CANCELLED: "已停止",
               Status.PAUSED: "暂停中", Status.WARNING: "需要检查"}.get(status, "")
     active = status in (Status.RUNNING, Status.STARTING, Status.RETRYING)

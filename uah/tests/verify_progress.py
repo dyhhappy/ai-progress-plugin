@@ -19,6 +19,7 @@ def main(argv=None):
         ('syntax',['-m','compileall','-q','uah','src','uha.py']),
         ('hub-selftest',['-m','uah.tools.uah','selftest']),
         ('progress',['-m','uah.tests.test_progress_completion']),
+        ('cli-wrapper',['-m','uah.tests.test_process_wrapper']),
         ('legacy-hud',['-m','uah.tests.test_uah_phase1','1','2','3','5','6','7','8','9','11','12']),
         ('uha-offline',['tests/test_offline.py']),
         ('uha-router',['tests/test_router.py']),

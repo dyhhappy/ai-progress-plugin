@@ -46,6 +46,12 @@ class HiddenWidgets(unittest.TestCase):
                                 self.assertAlmostEqual(float(thumb.place_info()['relwidth']),1/3,places=4)
                                 self.assertIn('33%',label.cget('text'))
                         self.assertEqual(app._settings_widgets['domain'].cget('text'),'ExampleProject')
+                        snap.runtime['control_actions']=['stop'];app._render()
+                        with patch.object(app.client,'submit_control') as submit:
+                            app._control('pause');submit.assert_not_called()
+                            self.assertIn('不支持',app._control_message)
+                        del snap.runtime['control_actions'];app._render()
+
                         with patch.object(app.client,'submit_control',return_value={'ok':True,'id':'test-request'}):
                             app._control('pause')
                             deadline=time.monotonic()+2

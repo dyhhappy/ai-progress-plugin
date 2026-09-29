@@ -156,6 +156,7 @@ class HudApp(DashboardApp):
                 pass
         self._root = root
         root.title(self.title)
+        root.protocol("WM_DELETE_WINDOW", self.close)
         root.attributes("-topmost", self._topmost)
         try:
             root.overrideredirect(True)
@@ -475,7 +476,7 @@ class HudApp(DashboardApp):
         elapsed = tk.Label(head, text="", bg=T.BG, fg=T.TEXT_MUTED, font=T.FONT_MONO)
         elapsed.pack(side="right")
         self._elapsed_labels["expanded"] = elapsed
-        self._icon_button(head, T.ICONS["close"], lambda: self._apply_form("mini"),
+        self._icon_button(head, T.ICONS["close"], self.close,
                           key="close").pack(side="right")
         state = tk.Label(head, text="等待 Agent", bg=T.BG, fg=T.TEXT, font=T.FONT_BODY,
                          anchor="w")
@@ -863,6 +864,7 @@ class HudApp(DashboardApp):
         menu.add_cascade(label="当前 Agent", menu=agents)
         menu.add_separator()
         menu.add_command(label="静音 / 取消静音", command=self.toggle_mute)
+        menu.add_command(label="启动命令行 Agent…", command=self._launch_cli_agent)
         menu.add_command(label="关闭", command=self.close)
         try:
             menu.tk_popup(event.x_root, event.y_root)
@@ -1191,7 +1193,8 @@ class HudApp(DashboardApp):
     def _ranked(self) -> list[Any]:
         """排序：Attention 高的优先，其次最近更新。与状态色无关。"""
         return sorted((s for s in self._snapshots.values() if s.agent.id != SAFETY_AGENT_ID),
-                      key=lambda s: (-int(s.attention.value), -s.updated_at))
+                      key=lambda s: (s.stale or s.stopped, s.status.is_terminal or s.status is Status.IDLE,
+                                     -int(s.attention.value), -s.updated_at))
 
     def _safety_snapshot(self) -> Any:
         return self._snapshots.get(SAFETY_AGENT_ID)
@@ -1297,8 +1300,19 @@ class HudApp(DashboardApp):
         paused = bool(snap is not None and (snap.status is Status.PAUSED or
                       snap.runtime.get("control_command") == "PAUSE"))
         self._paused_locally = paused
+        actions = snap.runtime.get("control_actions") if snap else None
+        can_pause = not isinstance(actions, list) or ("resume" if paused else "pause") in actions
         for btn in self._pause_buttons:
             try:
+                if not can_pause:
+                    if hasattr(btn, "_icon_key"):
+                        btn._icon_image = icon_image(self.tk, btn, "pause", T.BORDER, self._scale)
+                        btn.configure(image=btn._icon_image, cursor="arrow")
+                        btn._icon_key = "unavailable"
+                    else:
+                        btn.configure(text="暂停不可用", fg=T.TEXT_MUTED, cursor="arrow")
+                    continue
+                btn.configure(fg=T.TEXT_DIM, cursor="hand2")
                 if btn.cget("text") in (T.ICONS["pause"], T.ICONS["resume"]):
                     key = "resume" if paused else "pause"
                     btn.configure(text=T.ICONS[key])
@@ -1310,6 +1324,10 @@ class HudApp(DashboardApp):
                     btn.configure(text="继续" if paused else "暂停")
             except Exception:  # noqa: BLE001
                 pass
+
+        for btn in self._stop_buttons:
+            if not hasattr(btn, "_icon_key"):
+                btn.configure(text="终止进程" if snap and snap.runtime.get("source") == "cli-wrapper" else "停止")
 
         pending = [p for p in self._approval_pending if p.get("req_id")]
         if snap is not None and pending:
@@ -1395,6 +1413,17 @@ class HudApp(DashboardApp):
     # 控制（软控制；急停不在 HUD）
     # ==================================================================
 
+    def _launch_cli_agent(self):
+        import subprocess
+        import sys
+        from pathlib import Path
+        try:
+            subprocess.Popen([sys.executable, "-m", "uah.tools.agent_launch", "--choose"],
+                cwd=Path(__file__).resolve().parents[3],
+                creationflags=getattr(subprocess, "CREATE_NEW_CONSOLE", 0))
+        except OSError as exc:
+            self._hint(f"启动失败：{exc}", seconds=5)
+
     def _control(self, action: str) -> None:
         if action not in ("pause", "resume", "stop"):
             return
@@ -1406,6 +1435,11 @@ class HudApp(DashboardApp):
             return
         if not snap.runtime.get("soft_control"):
             self._control_message = "该 Agent 未声明软控制能力"
+            self._render()
+            return
+        actions = snap.runtime.get("control_actions")
+        if (isinstance(actions, list) and action not in actions) or snap.status.is_terminal:
+            self._control_message = "该接入不支持此操作；命令行进程目前仅支持停止" if not snap.status.is_terminal else "任务已结束"
             self._render()
             return
         if self._control_pending or self._control_busy:

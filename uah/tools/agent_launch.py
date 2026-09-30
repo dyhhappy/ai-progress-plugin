@@ -26,6 +26,8 @@ def load_profiles(path):
             raise ValueError(f'{name}: command 含无效参数')
         if profile.get('mode','terminal') not in ('terminal','capture'):
             raise ValueError(f'{name}: mode 必须为 terminal 或 capture')
+        if profile.get('feedback','auto') not in ('auto','off','script','codex'):
+            raise ValueError(f'{name}: feedback 必须为 auto、off、script 或 codex')
         if not isinstance(profile.get('share_output',False),bool):
             raise ValueError(f'{name}: share_output 必须为 true 或 false')
         if 'cwd' in profile and not isinstance(profile['cwd'],str): raise ValueError('cwd 必须是字符串')
@@ -70,6 +72,7 @@ def main(argv=None):
     parser.add_argument('--cwd')
     parser.add_argument('--mode',choices=('terminal','capture'))
     parser.add_argument('--encoding',default='utf-8')
+    parser.add_argument('--feedback',choices=('auto','off','script','codex'),default=None)
     parser.add_argument('--share-output',action='store_true',help='将清理后的输出摘要发给本机 HUD；默认只显示行数')
     parser.add_argument('--hud',action='store_true',help='同时新开一个 HUD 窗口')
     parser.add_argument('command',nargs=argparse.REMAINDER,help='-- 后填写程序及参数，不是 shell 表达式')
@@ -78,13 +81,17 @@ def main(argv=None):
     try:
         available=profiles(args.profiles)
         if args.list:
-            for name,p in available.items(): print(f'{name}: {p.get("mode","terminal")}')
+            for name,p in available.items(): print(f'{name}: {p.get("mode","terminal")} | {p["command"][0]}')
             if not available: print('没有检测到 CLI；可在 config/agents.local.json 配置，或用 -- 后指定程序。')
             return 0
         if interactive:
-            print('UAH 命令行 Agent 启动器\n真实 AI 需先在终端完成安装和登录。')
+            print('\n╔══════════════════════════════════════════════╗\n║       UAH · Agent 应用启动器                  ║\n╚══════════════════════════════════════════════╝\n自动检测常用命令行 Agent；选择后直接打开。\n真实 AI 需先完成安装和登录。\n')
             names=list(available)
-            for i,name in enumerate(names,1): print(f'{i}. {name}')
+            for i,name in enumerate(names,1):
+                p=available[name]
+                print(f'  [{i}] {p.get("name",name)}\n      {p["command"][0]}')
+            missing=[n for n in ('codex','claude','gemini','opencode','aider') if n not in available]
+            if missing: print('\n未检测到：'+', '.join(missing)+'（不会自动安装）')
             print('s. 子进程链路测试（不是 AI）\n0. 退出')
             choice=input('选择：').strip()
             if choice=='0': return 0
@@ -106,6 +113,12 @@ def main(argv=None):
         if command and (args.profile or args.sample): raise ValueError('直接命令、配置和样例只能选择一种')
         command=command or config.get('command')
         if not command: raise ValueError('请用 -- 后指定命令，或者使用 --profile')
+        feedback=args.feedback or config.get('feedback','auto')
+        if feedback=='auto':
+            feedback='codex' if Path(command[0]).stem.lower()=='codex' else 'script'
+            if feedback=='codex' and Path(command[0]).suffix.lower() in ('.cmd','.bat'):
+                feedback='script'
+                print('[UAH] 当前是批处理入口，仅启用脚本反馈；要自动识别 Codex 回合，请配置 codex.exe 的绝对路径。')
         ensure_hub(args.url)
         if args.hud:
             from ..hosts.desktop.launch import spawn_hud
@@ -113,17 +126,14 @@ def main(argv=None):
         wrapper=ProcessAgent(command,url=args.url,cwd=args.cwd or config.get('cwd'),
             name=args.name or config.get('name') or args.profile or Path(command[0]).stem,
             mode=args.mode or config.get('mode','terminal'),
-            share_output=args.share_output or config.get('share_output',False),encoding=args.encoding)
+            share_output=args.share_output or config.get('share_output',False),encoding=args.encoding,
+            feedback=feedback)
         print(f'[UAH] Agent ID: {wrapper.agent_id}，模式：{wrapper.mode}。\n'
               '请在 HUD 的“当前 Agent”菜单选择它。停止将结束本次进程，不会回滚修改。',flush=True)
         return wrapper.run()
     except (ValueError,OSError,EOFError) as exc:
         print(f'[UAH] {exc}',file=sys.stderr)
         return 2
-    finally:
-        if interactive:
-            try: input('\n按回车关闭启动器…')
-            except (EOFError,KeyboardInterrupt): pass
 
 
 if __name__=='__main__': raise SystemExit(main())

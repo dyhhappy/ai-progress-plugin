@@ -16,6 +16,19 @@ def progress_view(snap, connected=True):
     if snap is None:
         return ProgressView()
     task = snap.task
+    if snap.runtime.get('display_mode') == 'activity':
+        if not connected or snap.stale or snap.stopped:
+            return ProgressView('hidden', None, '已离线 · 工作过程暂不可用', 'muted')
+        if snap.runtime.get('feedback_error'):
+            return ProgressView('hidden', None, '过程反馈失败 · 请检查钩子', 'danger')
+        if not snap.runtime.get('feedback_connected'):
+            if snap.runtime.get('source')=='desktop-app':
+                return ProgressView('hidden',None,'等待桌面反馈 · 请检查工作目录与钩子','wait')
+            return ProgressView('hidden', None, '等待过程反馈 · 请在 /hooks 检查钩子', 'wait')
+        text=snap.activity.summary or '等待工作阶段更新'
+        active=snap.status in (Status.RUNNING,Status.STARTING,Status.RETRYING)
+        tone='ok' if snap.status is Status.DONE else 'danger' if snap.status is Status.ERROR else 'active' if active else 'wait'
+        return ProgressView('indeterminate' if active else 'hidden',None,text,tone)
     ratio = task.progress_ratio
     basis = "已上报" if snap.runtime.get("progress_basis") == "reported" else "已验证"
     detail = f"{basis} {task.completed_steps}/{task.total_steps}" if ratio is not None else (
@@ -24,6 +37,21 @@ def progress_view(snap, connected=True):
         return ProgressView("determinate" if ratio is not None else "hidden", ratio,
                             f"离线 · {detail}", "muted")
     status = snap.status
+    if snap.runtime.get('feedback_error'):
+        return ProgressView('hidden', None, str(snap.runtime['feedback_error'])+' · 进度暂不可用', 'danger')
+    estimate = snap.runtime.get('estimated_percent')
+    if ratio is None and isinstance(estimate,(int,float)) and not isinstance(estimate,bool) and 0 <= estimate <= 99:
+        ratio = estimate / 100
+        detail = 'AI 估计'
+    if status is Status.DONE and snap.runtime.get('source') == 'cli-wrapper' and snap.runtime.get('feedback_connected'):
+        suffix = ' · 等待下一个问题' if snap.runtime.get('process_running') else ''
+        return ProgressView('determinate', 1.0, '本轮回答已结束 · 100%' + suffix, 'ok')
+    if ratio is None and snap.runtime.get('source') == 'cli-wrapper':
+        if snap.runtime.get('feedback') == 'codex' and not snap.runtime.get('feedback_connected'):
+            detail = '反馈未连接 · 请在 Codex /hooks 检查钩子'
+        elif snap.runtime.get('feedback_connected') and status in (Status.RUNNING,Status.STARTING):
+            ratio = 0.0
+            detail = '本轮已开始 · 等待阶段上报'
     if status is Status.IDLE:
         return ProgressView()
     tone = ("ok" if status is Status.DONE else "danger" if status is Status.ERROR
@@ -32,7 +60,7 @@ def progress_view(snap, connected=True):
             else "muted" if status is Status.CANCELLED else "active")
     # Even a malformed producer must not display 100% while still executing.
     if ratio is not None and ratio >= 1 and status is not Status.DONE:
-        ratio = None
+        ratio = .99 if snap.runtime.get('source') == 'cli-wrapper' else None
         detail = f"步骤{basis}，等待任务结果" if tone == "active" else detail
     prefix = {Status.DONE: "已完成", Status.ERROR: "失败", Status.CANCELLED: "已停止",
               Status.PAUSED: "暂停中", Status.WARNING: "需要检查"}.get(status, "")

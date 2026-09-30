@@ -20,6 +20,9 @@ def main(argv=None):
         ('hub-selftest',['-m','uah.tools.uah','selftest']),
         ('progress',['-m','uah.tests.test_progress_completion']),
         ('cli-wrapper',['-m','uah.tests.test_process_wrapper']),
+        ('feedback',['-m','uah.tests.test_feedback']),
+        ('public-stages',['-m','uah.tests.test_public_stages']),
+        ('desktop-launch',['-m','uah.tests.test_desktop_launch']),
         ('legacy-hud',['-m','uah.tests.test_uah_phase1','1','2','3','5','6','7','8','9','11','12']),
         ('uha-offline',['tests/test_offline.py']),
         ('uha-router',['tests/test_router.py']),
@@ -47,7 +50,8 @@ def main(argv=None):
     summary={'passed':passed,'python':sys.executable,'python_version':sys.version,
              'suites':results,'widgets_skipped':args.no_widgets,
              'not_tested':['physical multi-monitor drag/hotplug','physical emergency hotkey/input release',
-                           'real Unreal scene execution','historical src.safety/ApprovalGate integration (source not supplied)']}
+                           'real Unreal scene execution','desktop app live model conversation after hook trust',
+                           'historical src.safety/ApprovalGate integration (source not supplied)']}
     (output/'summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding='utf-8')
     print(f'\n{ "PASS" if passed else "FAIL"}: {sum(r["exit_code"]==0 for r in results)}/{len(results)} suites')
     print(f'Logs: {output}')

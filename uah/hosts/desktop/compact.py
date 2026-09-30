@@ -1280,6 +1280,8 @@ class HudApp(DashboardApp):
             self._put(self._detail_widgets.get("action"),
                       snap.activity.summary or snap.activity.detail or snap.task.stage)
             step = snap.task.progress_text
+            if (snap.runtime or {}).get('display_mode')=='activity':
+                step = snap.activity.detail or ''
             self._put(self._detail_widgets.get("step"),
                       f"{step}（{snap.task.stage}）" if step and snap.task.stage
                       else (step or snap.task.stage))
@@ -1434,11 +1436,12 @@ class HudApp(DashboardApp):
             self._render()
             return
         if not snap.runtime.get("soft_control"):
-            self._control_message = "该 Agent 未声明软控制能力"
+            self._control_message = "请在 ChatGPT 应用中停止或暂停任务" if snap.runtime.get('source')=='desktop-app' else "该 Agent 未声明软控制能力"
             self._render()
             return
         actions = snap.runtime.get("control_actions")
-        if (isinstance(actions, list) and action not in actions) or snap.status.is_terminal:
+        process_stop = action == 'stop' and snap.runtime.get('process_running') is True
+        if (isinstance(actions, list) and action not in actions) or (snap.status.is_terminal and not process_stop):
             self._control_message = "该接入不支持此操作；命令行进程目前仅支持停止" if not snap.status.is_terminal else "任务已结束"
             self._render()
             return

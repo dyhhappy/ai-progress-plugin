@@ -118,10 +118,19 @@ class ProcessGroup:
 
 class ProcessAgent:
     def __init__(self, command, *, url='http://127.0.0.1:8789', cwd=None,
-                 name='命令行 Agent', mode='terminal', share_output=False, encoding='utf-8'):
+                 name='命令行 Agent', mode='terminal', share_output=False, encoding='utf-8', feedback='script'):
         if mode not in ('terminal','capture'):
             raise ValueError('mode 必须为 terminal 或 capture')
         codecs.lookup(encoding)
+        if feedback not in ('off','script','codex'): raise ValueError('无效反馈模式')
+        self.feedback_mode = feedback
+        self.feedback_channel = None
+        self.public_stages = None
+        self.public_stage = None
+        self.turn_id = None
+        self.turn_finished = False
+        self.seen_turns = set()
+        self.process_lock = threading.RLock()
         self.command = list(command)
         self.cwd = str(Path(cwd or os.getcwd()).resolve())
         if not Path(self.cwd).is_dir(): raise ValueError('工作目录不存在')
@@ -129,6 +138,7 @@ class ProcessAgent:
         self.agent_id = 'cli-' + uuid.uuid4().hex[:12]
         self.task_id = uuid.uuid4().hex
         self.lock = threading.RLock()
+        self.publish_lock = threading.Lock()
         self.finished = threading.Event()
         self.changed = threading.Event()
         self.proc = None
@@ -142,6 +152,8 @@ class ProcessAgent:
                      'activity':{'summary':'正在启动命令行程序'},
                      'payload':{'runtime':{'task_domain':Path(self.cwd).name,'soft_control':True,
                          'control_actions':['stop'],'source':'cli-wrapper','progress_basis':'reported',
+                         'process_running':False,'estimated_percent':None,'feedback':feedback,
+                         'display_mode':'activity' if feedback=='codex' else 'progress',
                          'approval':'未接入','stop_semantics':'结束进程，不代表回滚', 'capture_mode':mode}}}
         self.agent = {'id':self.agent_id,'name':clean_text(name),'type':'cli'}
 
@@ -154,7 +166,8 @@ class ProcessAgent:
 
     def publish(self, heartbeat=False):
         try:
-            HubClient(self.url,timeout_s=.6).post_event(self.event(heartbeat))
+            with self.publish_lock:
+                HubClient(self.url,timeout_s=.6).post_event(self.event(heartbeat))
             return True
         except Exception:
             return False
@@ -236,45 +249,153 @@ class ProcessAgent:
         finally:
             pipe.close()
 
-    def stop_process(self):
+    def accept_feedback(self, event):
+        kind = event.get('type')
+        incoming = str(event.get('turn_id') or '')
         with self.lock:
+            if self.cancelled or self.finished.is_set(): return
+            meta = self.state['payload']['runtime']
+            if kind == 'feedback_error':
+                meta['feedback_error']=clean_text(event.get('message','反馈失败'))
+                self.changed.set()
+                return
+            meta.pop('feedback_error',None)
+            if kind == 'ready' and self.turn_id is None:
+                self.state['status']='IDLE'
+                self.state['activity']={'summary':'已就绪，等待终端提问'}
+            elif kind == 'turn_started':
+                if incoming and incoming in self.seen_turns: return
+                self.turn_id=incoming or uuid.uuid4().hex
+                self.public_stage=None
+                if self.feedback_mode=='codex' and event.get('source')=='codex-hook' and event.get('transcript_path'):
+                    from .public_stages import PublicStages
+                    self.public_stages=PublicStages(event['transcript_path'],self.turn_id)
+                else:self.public_stages=None
+                self.seen_turns.add(self.turn_id)
+                self.turn_finished=False
+                self.state['task']={'id':self.task_id+':'+self.turn_id,'name':self.agent['name']+' · 当前问答',
+                    'started_at':time.time(),'ended_at':None,'total_steps':None,'completed_steps':None}
+                self.state['status']='RUNNING'
+                self.state['activity']={'summary':'正在处理本轮问题'}
+                meta['estimated_percent']=None
+            elif self.turn_id is not None and incoming and incoming != self.turn_id:
+                return  # Late feedback from an older turn must not finish the current one.
+            elif kind in ('turn_finished','turn_interrupted','turn_failed'):
+                self.turn_finished=True
+                self.state['status']={'turn_finished':'DONE','turn_interrupted':'CANCELLED','turn_failed':'ERROR'}[kind]
+                self.state['task']['ended_at']=time.time()
+                self.state['activity']={'summary':{'turn_finished':'本轮回答已结束，等待下一个问题',
+                    'turn_interrupted':'本轮已中断，终端仍可继续使用','turn_failed':'本轮报告失败，终端仍可继续使用'}[kind]}
+            elif self.turn_finished:
+                return
+            elif kind in ('estimate','plan','activity','waiting_approval'):
+                if kind=='estimate':
+                    value=event.get('percent')
+                    if value is not None:
+                        if isinstance(value,bool) or not isinstance(value,(int,float)) or not 0<=value<=99:return
+                        meta['estimated_percent']=value
+                elif kind=='plan':
+                    completed,total=event.get('completed'),event.get('total')
+                    if type(completed) is not int or type(total) is not int or not 0<=completed<=total or total<=0:return
+                    self.state['task'].update(completed_steps=completed,total_steps=total)
+                self.state['status']='WAITING_APPROVAL' if kind=='waiting_approval' else 'RUNNING'
+                message=event.get('message') or ('请在终端处理确认' if kind=='waiting_approval' else '任务阶段已更新')
+                tool_action=event.get('tool_activity')
+                if kind=='activity' and tool_action:
+                    self.state['activity']={'summary':self.public_stage or clean_text(message),
+                                            'detail':clean_text(tool_action)}
+                else:
+                    if kind in ('activity','estimate','plan') and event.get('source') in ('public-commentary','ai-report'):
+                        self.public_stage=clean_text(message)
+                    self.state['activity']={'summary':clean_text(message)}
+            else:return
+            meta['feedback_connected']=True
+            self.changed.set()
+
+    def _feedback(self):
+        while not self.finished.is_set():
+            for event in self.feedback_channel.events(): self.accept_feedback(event)
+            if self.public_stages and not self.turn_finished:
+                for event in self.public_stages.events():self.accept_feedback(event)
+            self.finished.wait(.1)
+
+    def stop_process(self):
+        # Never hold the state/publisher lock while waiting for the OS.
+        with self.process_lock:
+            if self.cancelled:return True,'进程已经停止'
             if self.proc is None or self.proc.poll() is not None:
                 return False,'进程已经退出'
+            with self.lock:
+                self.state['activity']={'summary':'正在终止本次进程…'}
+                self.changed.set()
             self.group.terminate(self.proc)
-            self.cancelled = True
+            with self.lock:
+                self.cancelled=True
+                self.state['status']='CANCELLED'
+                self.state['task']['ended_at']=time.time()
+                self.state['activity']={'summary':'本次进程已停止'}
+                self.state['payload']['runtime'].update(process_running=False,soft_control=False,control_actions=[])
+                self.changed.set()
         return True,'本次启动的进程已结束；这不代表撤销其已执行的操作'
 
     def _controls(self):
         from ..core.approval import fetch_control_commands, acknowledge_control
         while not self.finished.is_set():
             try:
-                commands = fetch_control_commands(self.url,wait_s=.2,timeout_s=.7,agent_id=self.agent_id)
-                for command in commands:
-                    ok,message = False,'此接入仅支持停止，不支持暂停或继续'
+                commands = fetch_control_commands(self.url,wait_s=.1,timeout_s=1,agent_id=self.agent_id)
+            except Exception as exc:
+                with self.lock:
+                    self.state['payload']['runtime']['control_error']=clean_text(type(exc).__name__)
+                self.finished.wait(.15)
+                continue
+            for command in commands:
+                ok,message=False,'此接入仅支持停止，不支持暂停或继续'
+                try:
                     if command.get('agent') != self.agent_id or time.time() >= command.get('expires_at',0):
-                        message = '请求目标不匹配或已过期'
-                    elif command.get('action') == 'stop':
-                        ok,message = self.stop_process()
-                    acknowledge_control(self.url,command,ok,message)
-            except Exception:
-                self.finished.wait(.3)
+                        message='请求目标不匹配或已过期'
+                    elif command.get('action')=='stop':ok,message=self.stop_process()
+                except Exception as exc:
+                    message='终止失败：'+clean_text(exc,140)
+                    with self.lock:
+                        self.state['payload']['runtime']['control_error']=message
+                        self.state['activity']={'summary':message}
+                        self.changed.set()
+                for attempt in range(2):
+                    try:
+                        acknowledge_control(self.url,command,ok,message);break
+                    except Exception:
+                        if attempt==0:time.sleep(.1)
+                # Publish immediately after the receipt, not after thread cleanup.
+                self.publish()
 
     def run(self):
         readers=[]; workers=[]; code=127
         self.publish()
         try:
-            args=resolve_command(self.command,self.cwd)
+            command=list(self.command)
+            env=os.environ.copy()
+            if self.feedback_mode!='off':
+                from .feedback import FeedbackChannel, codex_hook_arguments
+                self.feedback_channel=FeedbackChannel()
+                env['UAH_REPORT_CHANNEL']=str(self.feedback_channel.path)
+                if self.feedback_mode=='codex':
+                    command[1:1]=codex_hook_arguments()
+                    print('[UAH] 首次使用请在 Codex 输入 /hooks，审核并信任 UAH 的回合反馈钩子。',flush=True)
+            args=resolve_command(command,self.cwd)
             self.group=ProcessGroup()
-            self.proc=subprocess.Popen(args,cwd=self.cwd,stdin=None,
+            self.proc=subprocess.Popen(args,cwd=self.cwd,stdin=None,env=env,
                 stdout=subprocess.PIPE if self.mode=='capture' else None,
                 stderr=subprocess.PIPE if self.mode=='capture' else None,
                 creationflags=getattr(subprocess,'CREATE_NEW_PROCESS_GROUP',0),
                 start_new_session=os.name!='nt')
             self.group.attach(self.proc)
             with self.lock:
+                self.state['payload']['runtime']['process_running']=True
                 self.state['status']='RUNNING'
                 self.state['activity']={'summary':'进程运行中；请在终端操作' if self.mode=='terminal' else '正在接收程序输出'}
-            for target in (self._sender,self._controls):
+            targets=[self._sender,self._controls]
+            if self.feedback_channel:targets.append(self._feedback)
+            for target in targets:
                 thread=threading.Thread(target=target,daemon=True);thread.start();workers.append(thread)
             if self.mode=='capture':
                 for pipe,parse in ((self.proc.stdout,True),(self.proc.stderr,False)):
@@ -290,16 +411,18 @@ class ProcessAgent:
             if self.proc is not None and self.proc.poll() is None:
                 self.proc.kill();self.proc.wait(timeout=3)
         finally:
-            with self.lock:
+            with self.process_lock:
                 if self.group: self.group.close()
             for thread in readers: thread.join(timeout=2)
+            if self.feedback_channel:
+                for event in self.feedback_channel.events(): self.accept_feedback(event)
             self.finished.set()
-            for thread in workers: thread.join(timeout=2)
             with self.lock:
                 complete=self.reported_success and not self.reported_error and code==0
                 self.state['status']=('CANCELLED' if self.cancelled else 'ERROR' if code!=0 or self.reported_error
-                                      else 'DONE' if complete else 'WARNING')
+                                      else 'DONE' if complete or self.turn_finished and self.state['status']=='DONE' else 'WARNING')
                 self.state['task']['ended_at']=time.time()
+                self.state['payload']['runtime']['process_running']=False
                 self.state['payload']['runtime']['soft_control']=False
                 self.state['payload']['runtime']['control_actions']=[]
                 self.state['payload']['runtime']['exit_code']=code
@@ -311,6 +434,8 @@ class ProcessAgent:
             delivered=False
             for _ in range(3):
                 if self.publish(): delivered=True;break
+            for thread in workers: thread.join(timeout=1)
+            if self.feedback_channel:self.feedback_channel.close()
             print(f'\n[UAH] {self.agent_id}: {self.state["activity"]["summary"]}；退出码 {code}',flush=True)
             if not delivered: print('[UAH] Hub 不可达，最终状态未送达。',file=sys.stderr)
         return 130 if self.cancelled else code

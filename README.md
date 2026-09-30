@@ -1,5 +1,7 @@
 # AI进度插件
 
+桌面应用入口：双击 `launch_agent.cmd`，可自动打开 ChatGPT 桌面软件，或添加并保存其他 Agent 的程序路径。Codex / ChatGPT 支持项目钩子接入工作状态，其他应用目前仅启动。详见 [桌面启动器使用说明](docs/DESKTOP_LAUNCHER.md)。原命令行入口为 `launch_cli.cmd`。
+
 UAH（Universal Agent HUD）：为 AI / Agent 任务提供桌面状态条、真实步骤进度、异常提示和软控制。
 
 ## 当前能做什么
@@ -39,7 +41,7 @@ UAH（Universal Agent HUD）：为 AI / Agent 任务提供桌面状态条、真�
 .\test_uah_progress.cmd
 ```
 
-预期 `PASS: 9/9 suites`。日志位于 `artifacts/uah-progress/`。
+预期 `PASS: 12/12 suites`。日志位于 `artifacts/uah-progress/`。
 本次验证包含隐藏 Tk 控件的四档缩放测试；真实 UE 操作、物理急停、多屏拖动和插拔仍需实机验收。历史文档提到的独立安全/审批模块未包含在当前基线中，不能视为已接入。
 
 ## 文档与目录
@@ -67,8 +69,11 @@ UAH（Universal Agent HUD）：为 AI / Agent 任务提供桌面状态条、真�
 
 ## 通用命令行 Agent 启动器
 
-双击 `launch_agent.cmd` 选择已经安装的 AI 命令行工具；也可以从 HUD 右键菜单进入。终端模式保留原来的交互，输出模式可读取明确的结构化事件。无需 UHA、UE 或向 UAH 填模型密钥。
+双击 `launch_cli.cmd` 选择已经安装的 AI 命令行工具；也可以从 HUD 右键菜单进入。终端模式保留原来的交互，输出模式可读取明确的结构化事件。无需 UHA、UE 或向 UAH 填模型密钥。
 
 支持真实进程启动/退出、输出活动、仅针对本次进程的停止，以及可选上报步骤；不支持通用暂停，不猜测思考百分比。正常退出不自动等同于任务成功。
 
 [完整配置与测试方法](docs/CLI_AGENT_LAUNCHER.md)。
+## Agent 启动器更新
+
+通过 `launch_agent.cmd` 或 `launch_desktop.cmd` 打开桌面应用启动器；通过 `launch_cli.cmd` 使用命令行 Agent。Codex 接入后显示公开工作阶段和具体工具动作，当前默认不显示百分比。项目钩子首次需要审核信任。使用与测试步骤见 [Agent 反馈说明](docs/AGENT_FEEDBACK.md) 和 [桌面启动器说明](docs/DESKTOP_LAUNCHER.md)。
